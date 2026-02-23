@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -10,56 +10,56 @@
   <main class="container">
     <header class="header">
       <h1>WRF Tuner</h1>
-      <p>Recomendación rápida de <b>MPI ranks</b> y <b>time_step</b> (óptima/segura/arriesgada).</p>
+      <p>Quick recommendation of <b>MPI ranks</b> and <b>time_step</b> (optimal/safe/risky).</p>
     </header>
 
     <section class="card">
-      <h2>Entrada</h2>
+      <h2>Input</h2>
 
       <div class="grid">
         <label>
-          Nº de dominios
+          Number of domains
           <input id="domains" type="number" min="1" value="3" />
         </label>
 
         <label>
-          e_we (por dominio)
+          e_we (per domain)
           <input id="e_we" type="text" placeholder="74,112,220" value="74,112,220" />
         </label>
 
         <label>
-          e_sn (por dominio)
+          e_sn (per domain)
           <input id="e_sn" type="text" placeholder="61,97,190" value="61,97,190" />
         </label>
 
         <label>
-          dx_km (opcional: 1 valor o lista)
-          <input id="dx_km" type="text" placeholder="27 o 27,9,3" value="27,9,3" />
+          dx_km (optional: 1 value or list)
+          <input id="dx_km" type="text" placeholder="27 or 27,9,3" value="27,9,3" />
         </label>
 
         <label>
-          min_patch (tile mínimo)
+          min_patch (min tile)
           <input id="min_patch" type="number" min="4" value="10" />
         </label>
       </div>
 
       <div class="actions">
-        <button id="runBtn">Calcular</button>
-        <button id="exampleBtn" class="secondary">Ejemplo</button>
+        <button id="runBtn">Calculate</button>
+        <button id="exampleBtn" class="secondary">Example</button>
       </div>
 
       <p class="hint">
-        Nota: normalmente WRF usa un <b>time_step</b> para el dominio padre y lo escala con el ratio de anidamiento.
+        Note: WRF typically uses a single <b>time_step</b> for the parent domain and scales it using the nesting ratio.
       </p>
     </section>
 
     <section class="card">
-      <h2>Resultados</h2>
+      <h2>Results</h2>
       <div id="output"></div>
     </section>
 
     <footer class="footer">
-      <small>Hecho para correr 100% en el navegador. Sin backend.</small>
+      <small>Made to run 100% in the browser. No backend.</small>
     </footer>
   </main>
 

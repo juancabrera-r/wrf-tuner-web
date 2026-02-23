@@ -1,8 +1,8 @@
-// --- Escenarios ---
+// --- Scenarios ---
 const SCENARIOS = [
-  { name: "ÓPTIMA",     ppcTarget: 30000, dtK: 7.0 },
-  { name: "SEGURA",     ppcTarget: 60000, dtK: 6.0 },
-  { name: "ARRIESGADA", ppcTarget: 100000, dtK: 8.0 },
+  { name: "OPTIMAL",     ppcTarget: 30000, dtK: 7.0 },
+  { name: "SAFE",        ppcTarget: 60000, dtK: 6.0 },
+  { name: "RISKY",       ppcTarget: 100000, dtK: 8.0 },
 ];
 
 function parseList(str, n, name, asFloat=false) {
@@ -10,14 +10,14 @@ function parseList(str, n, name, asFloat=false) {
   if (raw.length === 0) return null;
 
   if (raw.length === 1 && n > 1) {
-    const v = asFloat ? Number(raw[0]) : parseInt(raw[0], 10);
-    if (!Number.isFinite(v)) throw new Error(`${name} inválido: ${raw[0]}`);
+  const v = asFloat ? Number(raw[0]) : parseInt(raw[0], 10);
+  if (!Number.isFinite(v)) throw new Error(`${name} invalid: ${raw[0]}`);
     const arr = [v, ...Array(n-1).fill(NaN)];
     return arr;
   }
-  if (raw.length !== n) throw new Error(`${name} debe tener ${n} valores (o 1 valor). Recibido ${raw.length}.`);
+  if (raw.length !== n) throw new Error(`${name} must have ${n} values (or 1 value). Received ${raw.length}.`);
   const out = raw.map(x => asFloat ? Number(x) : parseInt(x, 10));
-  if (out.some(v => !Number.isFinite(v))) throw new Error(`${name} contiene valores inválidos.`);
+  if (out.some(v => !Number.isFinite(v))) throw new Error(`${name} contains invalid values.`);
   return out;
 }
 
@@ -81,19 +81,19 @@ function renderTable(scenName, rows) {
   const head = `
     <div class="sectionTitle">
       <span class="badge">${scenName}</span>
-      <h3>Recomendación</h3>
+      <h3>Recommendation</h3>
     </div>
   `;
   const table = `
     <table class="table">
       <thead>
         <tr>
-          <th>Dominio</th>
+          <th>Domain</th>
           <th>nproc_x × nproc_y</th>
           <th>Total</th>
           <th>tile_x × tile_y</th>
-          <th>time_step (padre)</th>
-          <th>time_step (por dominio)</th>
+          <th>time_step (parent)</th>
+          <th>time_step (per domain)</th>
         </tr>
       </thead>
       <tbody>
@@ -119,11 +119,11 @@ function compute() {
 
   const e_we = parseList(document.getElementById("e_we").value, nd, "e_we", false);
   const e_sn = parseList(document.getElementById("e_sn").value, nd, "e_sn", false);
-  const dx   = parseList(document.getElementById("dx_km").value, nd, "dx_km", true); // puede ser null si está vacío
+  const dx   = parseList(document.getElementById("dx_km").value, nd, "dx_km", true); // may be null if empty
 
-  if (!Number.isFinite(nd) || nd < 1) throw new Error("Nº de dominios inválido.");
-  if (!e_we || !e_sn) throw new Error("Debes indicar e_we y e_sn.");
-  if (!Number.isFinite(minPatch) || minPatch < 4) throw new Error("min_patch inválido (>=4).");
+  if (!Number.isFinite(nd) || nd < 1) throw new Error("Invalid number of domains.");
+  if (!e_we || !e_sn) throw new Error("You must provide e_we and e_sn.");
+  if (!Number.isFinite(minPatch) || minPatch < 4) throw new Error("Invalid min_patch (>=4).");
 
   const grids = [];
   for (let i=0;i<nd;i++) {
@@ -141,7 +141,7 @@ function compute() {
 
   const out = [];
   out.push(`<div class="badge">INPUT</div>`);
-  out.push(`<p style="color:var(--muted); margin-top:8px">Dominios: <b>${nd}</b></p>`);
+  out.push(`<p style="color:var(--muted); margin-top:8px">Domains: <b>${nd}</b></p>`);
   out.push(`<ul style="margin:0; padding-left:18px; color:var(--muted)">` +
     grids.map((g,i) => {
       const dxs = dx ? (Number.isFinite(dx[i]) ? `${dx[i]} km` : "—") : "—";
@@ -165,7 +165,7 @@ function compute() {
         dtDom = `${dtParentVal}s`;
       } else {
         const r = ratios[i];
-        dtDom = r ? `${Math.max(1, Math.floor(dtParentVal / r))}s (/${r})` : `${dtParentVal}s (sin ratio)`;
+        dtDom = r ? `${Math.max(1, Math.floor(dtParentVal / r))}s (/${r})` : `${dtParentVal}s (no ratio)`;
       }
 
       return {
@@ -185,11 +185,11 @@ function compute() {
 
   out.push(`
     <div class="card" style="margin-top:14px">
-      <div class="badge">Notas</div>
+      <div class="badge">Notes</div>
       <ul style="color:var(--muted); margin:10px 0 0; padding-left:18px">
-        <li>Si hay inestabilidad (CFL/blow-up), baja <b>time_step</b> 10–20% o usa perfil <b>SEGURA</b>.</li>
-        <li>Si un dominio pequeño no admite muchas particiones, baja <b>min_patch</b> a 8 o acepta menos ranks.</li>
-        <li>WRF suele usar un dt del padre y los hijos escalan por ratio (si existe).</li>
+        <li>If there is instability (CFL/blow-up), lower the <b>time_step</b> by 10–20% or use the <b>SAFE</b> profile.</li>
+        <li>If a small domain cannot accommodate many partitions, lower <b>min_patch</b> to 8 or accept fewer ranks.</li>
+        <li>WRF usually uses a parent dt and children scale by the nesting ratio (if present).</li>
       </ul>
     </div>
   `);
