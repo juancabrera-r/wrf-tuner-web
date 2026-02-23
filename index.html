@@ -19,28 +19,35 @@
       <div class="grid">
         <label>
           Number of domains
-          <input id="domains" type="number" min="1" value="3" />
+          <input id="domains" type="number" min="1" value="2" />
         </label>
 
         <label>
           e_we (per domain, d01, d02, ...)
-          <input id="e_we" type="text" placeholder="74,112,220" value="74,112,220" />
+          <input id="e_we" type="text" placeholder="74,112,220" value="134,296" />
         </label>
 
         <label>
           e_sn (per domain, d01, d02, ...)
-          <input id="e_sn" type="text" placeholder="61,97,190" value="61,97,190" />
+          <input id="e_sn" type="text" placeholder="61,97,190" value="100,136" />
         </label>
 
         <label>
           dx_km (optional: 1 value or list)
-          <input id="dx_km" type="text" placeholder="27 or 27,9,3" value="27,9,3" />
+          <input id="dx_km" type="text" placeholder="27 or 27,9,3" value="5,1" />
         </label>
 
         <label>
           min_patch (min tile)
           <input id="min_patch" type="number" min="4" value="10" />
         </label>
+
+        <!-- 🔥 NUEVO CAMPO -->
+        <label>
+          reasonable_time_step_ratio
+          <input id="reasonable_ratio" type="number" step="0.1" value="6" />
+        </label>
+
       </div>
 
       <div class="actions">
@@ -63,6 +70,7 @@
     </footer>
   </main>
 
-  <script src="app.js?v=20260223-1"></script>
+  <!-- IMPORTANTE: cache busting -->
+  <script src="app.js?v=20260223-2"></script>
 </body>
 </html>
