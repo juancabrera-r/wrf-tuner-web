@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>WRF Tuner</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="container">
+    <header class="header">
+      <h1>WRF Tuner</h1>
+      <p>Recomendación rápida de <b>MPI ranks</b> y <b>time_step</b> (óptima/segura/arriesgada).</p>
+    </header>
+
+    <section class="card">
+      <h2>Entrada</h2>
+
+      <div class="grid">
+        <label>
+          Nº de dominios
+          <input id="domains" type="number" min="1" value="3" />
+        </label>
+
+        <label>
+          e_we (por dominio)
+          <input id="e_we" type="text" placeholder="74,112,220" value="74,112,220" />
+        </label>
+
+        <label>
+          e_sn (por dominio)
+          <input id="e_sn" type="text" placeholder="61,97,190" value="61,97,190" />
+        </label>
+
+        <label>
+          dx_km (opcional: 1 valor o lista)
+          <input id="dx_km" type="text" placeholder="27 o 27,9,3" value="27,9,3" />
+        </label>
+
+        <label>
+          min_patch (tile mínimo)
+          <input id="min_patch" type="number" min="4" value="10" />
+        </label>
+      </div>
+
+      <div class="actions">
+        <button id="runBtn">Calcular</button>
+        <button id="exampleBtn" class="secondary">Ejemplo</button>
+      </div>
+
+      <p class="hint">
+        Nota: normalmente WRF usa un <b>time_step</b> para el dominio padre y lo escala con el ratio de anidamiento.
+      </p>
+    </section>
+
+    <section class="card">
+      <h2>Resultados</h2>
+      <div id="output"></div>
+    </section>
+
+    <footer class="footer">
+      <small>Hecho para correr 100% en el navegador. Sin backend.</small>
+    </footer>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

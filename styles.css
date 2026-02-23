@@ -1,0 +1,98 @@
+:root{
+  --bg:#0b1020;
+  --card:#121a33;
+  --text:#e9ecf5;
+  --muted:#a9b1cc;
+  --border:#263055;
+  --btn:#2b67ff;
+  --btn2:#1c2440;
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+  background: radial-gradient(1200px 600px at 20% 0%, #14204a, var(--bg));
+  color:var(--text);
+}
+.container{
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 28px 16px 40px;
+}
+.header h1{margin:0 0 6px}
+.header p{margin:0; color:var(--muted)}
+.card{
+  background: rgba(18,26,51,0.92);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px;
+  margin-top: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+}
+.grid{
+  display:grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 10px;
+}
+label{display:flex; flex-direction:column; gap:6px; color:var(--muted); font-size: 14px;}
+input{
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: #0e1530;
+  color: var(--text);
+  outline: none;
+}
+input:focus{border-color:#3b7bff}
+.actions{
+  display:flex;
+  gap:10px;
+  margin-top: 14px;
+}
+button{
+  border:0;
+  border-radius: 10px;
+  padding: 10px 14px;
+  color: white;
+  background: var(--btn);
+  cursor:pointer;
+  font-weight: 600;
+}
+button.secondary{background: var(--btn2); border:1px solid var(--border)}
+.hint{color:var(--muted); margin-top: 12px; font-size: 13px}
+.footer{margin-top:16px; color:var(--muted)}
+.table{
+  width:100%;
+  border-collapse: collapse;
+  overflow:hidden;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+.table th, .table td{
+  padding: 10px 10px;
+  border-bottom: 1px solid var(--border);
+  text-align:left;
+  font-size: 14px;
+}
+.table th{color:#cfd6f3; background:#0e1530}
+.badge{
+  display:inline-block;
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color:#cfd6f3;
+  background:#0e1530;
+  font-size:12px;
+}
+.sectionTitle{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin: 12px 0 10px;
+}
+.sectionTitle h3{margin:0}
+@media (max-width: 720px){
+  .grid{grid-template-columns: 1fr}
+}
