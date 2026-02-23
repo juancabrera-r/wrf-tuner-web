@@ -58,8 +58,8 @@ function parseDxTokenToMeters(token) {
   if (unit === "km") return val * 1000.0;
   if (unit === "m") return val;
 
-  // Sin unidad: heurística
-  // >1000 => metros; <=1000 => km
+  // No unit: heuristic
+  // >1000 => meters; <=1000 => km
   return (val > 1000.0) ? val : (val * 1000.0);
 }
 
@@ -107,7 +107,7 @@ function factorPairs(n) {
 }
 
 function scoreDecomp(nx, ny, px, py, tx, ty) {
-  // preferir proporción parecida a nx/ny + tiles más “cuadrados”
+  // prefer aspect ratio similar to nx/ny + more "square" tiles
   const aspect = nx / ny;
   const ratio = px / py;
   const score1 = Math.abs(Math.log((ratio + 1e-9) / (aspect + 1e-9)));
@@ -116,7 +116,7 @@ function scoreDecomp(nx, ny, px, py, tx, ty) {
 }
 
 function chooseDecompForTotal(nx, ny, total, minPatch) {
-  // Devuelve mejor (px,py) para ese total, o null si ninguna válida
+  // Returns best (px,py) for that total, or null if none valid
   const pairs = factorPairs(total);
   let best = null;
 
@@ -132,14 +132,14 @@ function chooseDecompForTotal(nx, ny, total, minPatch) {
 }
 
 function recommendTotalAndDecomp(nx, ny, minPatch, preferredTotals) {
-  // Recorre totales preferidos y elige el primero que tenga una factorización válida
+  // Iterate preferred totals and pick the first with a valid factorization
   for (const total of preferredTotals) {
     const best = chooseDecompForTotal(nx, ny, total, minPatch);
     if (best) return { total, px: best.px, py: best.py, tx: best.tx, ty: best.ty };
   }
 
-  // Fallback: probar descendente desde un máximo razonable (por si el usuario puso cosas raras)
-  const maxTry = Math.min(128, Math.max(1, nx * ny)); // cap arbitrario
+  // Fallback: try descending from a reasonable maximum (in case user provided odd inputs)
+  const maxTry = Math.min(128, Math.max(1, nx * ny)); // arbitrary cap
   for (let total = maxTry; total >= 1; total--) {
     const best = chooseDecompForTotal(nx, ny, total, minPatch);
     if (best) return { total, px: best.px, py: best.py, tx: best.tx, ty: best.ty };
@@ -149,7 +149,7 @@ function recommendTotalAndDecomp(nx, ny, minPatch, preferredTotals) {
 }
 
 function computeDtByReasonable(dxMeters, reasonableRatio, safetyFactor) {
-  // WRF check aproximado: (dt/dx) (s/km) <= reasonable_time_step_ratio
+  // Approx WRF check: (dt/dx) (s/km) <= reasonable_time_step_ratio
   // dt_max ~= reasonableRatio * dx_km
   if (!Number.isFinite(dxMeters) || dxMeters <= 0) return null;
 
@@ -171,7 +171,7 @@ function nestingRatio(dxParentMeters, dxChildMeters) {
 function formatDx(dxMeters) {
   if (!Number.isFinite(dxMeters)) return "—";
   const km = dxMeters / 1000.0;
-  // mostrar km con hasta 3 decimales si hace falta
+  // show km with up to 3 decimals if needed
   const kmStr = (Math.abs(km - Math.round(km)) < 1e-9) ? String(Math.round(km)) : km.toFixed(3).replace(/0+$/, "").replace(/\.$/, "");
   return `${kmStr} km`;
 }
@@ -183,7 +183,7 @@ function renderTable(scenName, rows) {
   const head = `
     <div class="sectionTitle">
       <span class="badge">${scenName}</span>
-      <h3>Recomendación</h3>
+      <h3>Recommendation</h3>
     </div>
   `;
 
@@ -191,12 +191,12 @@ function renderTable(scenName, rows) {
     <table class="table">
       <thead>
         <tr>
-          <th>Dominio</th>
+          <th>Domain</th>
           <th>nproc_x × nproc_y</th>
           <th>Total</th>
           <th>tile_x × tile_y</th>
-          <th>time_step (padre)</th>
-          <th>time_step (por dominio)</th>
+          <th>time_step (parent)</th>
+          <th>time_step (per domain)</th>
         </tr>
       </thead>
       <tbody>
@@ -227,24 +227,24 @@ function compute() {
   const nd = Number(document.getElementById("domains").value);
   const minPatch = Number(document.getElementById("min_patch").value);
 
-  // Nuevo: razonable ratio editable (si no existe el input, usamos 6.0)
+  // New: reasonable ratio editable (if input missing, use 6.0)
   const ratioEl = document.getElementById("reasonable_ratio");
   const reasonableRatio = ratioEl ? Number(ratioEl.value) : 6.0;
 
-  if (!Number.isFinite(nd) || nd < 1) throw new Error("Nº de dominios inválido.");
-  if (!Number.isFinite(minPatch) || minPatch < 4) throw new Error("min_patch inválido (>=4).");
-  if (!Number.isFinite(reasonableRatio) || reasonableRatio <= 0) throw new Error("reasonable_time_step_ratio inválido.");
+  if (!Number.isFinite(nd) || nd < 1) throw new Error("Invalid number of domains.");
+  if (!Number.isFinite(minPatch) || minPatch < 4) throw new Error("Invalid min_patch (>=4).");
+  if (!Number.isFinite(reasonableRatio) || reasonableRatio <= 0) throw new Error("Invalid reasonable_time_step_ratio.");
 
   const e_we = parseListStrict(document.getElementById("e_we").value, nd, "e_we");
   const e_sn = parseListStrict(document.getElementById("e_sn").value, nd, "e_sn");
-  const dxMetersList = parseDxListToMeters(document.getElementById("dx_km").value, nd, "dx"); // permite km/m
+  const dxMetersList = parseDxListToMeters(document.getElementById("dx_km").value, nd, "dx"); // allows km/m
 
   const grids = [];
   for (let i = 0; i < nd; i++) {
     grids.push(gridPoints(e_we[i], e_sn[i]));
   }
 
-  // ratios de nesting (si dx disponible para d1 y di)
+  // nesting ratios (if dx available for d1 and di)
   const ratios = Array(nd).fill(null);
   if (dxMetersList && Number.isFinite(dxMetersList[0])) {
     for (let i = 1; i < nd; i++) {
@@ -256,7 +256,7 @@ function compute() {
 
   const out = [];
   out.push(`<div class="badge">INPUT</div>`);
-  out.push(`<p style="color:var(--muted); margin-top:8px">Dominios: <b>${nd}</b> · min_patch: <b>${minPatch}</b> · reasonable_time_step_ratio: <b>${reasonableRatio}</b></p>`);
+  out.push(`<p style="color:var(--muted); margin-top:8px">Domains: <b>${nd}</b> · min_patch: <b>${minPatch}</b> · reasonable_time_step_ratio: <b>${reasonableRatio}</b></p>`);
 
   out.push(
     `<ul style="margin:0; padding-left:18px; color:var(--muted)">` +
@@ -272,7 +272,7 @@ function compute() {
   if (!dxMetersList) {
     out.push(
       `<p style="color:var(--muted); margin-top:10px">
-        ⚠️ No has indicado dx: para calcular <b>time_step</b> necesitas dx (puedes poner "5", "5km", "5000m").
+        ⚠️ You did not provide dx: to compute <b>time_step</b> you need dx (you can use "5", "5km", "5000m").
       </p>`
     );
   }
@@ -293,7 +293,7 @@ function compute() {
     const dtParentStr = dtParentVal ? `${dtParentVal}s` : "—";
 
     const rows = grids.map((g, i) => {
-      // para cada dominio, buscamos la mejor factorización para ese TOTAL fijo
+      // for each domain, find the best factorization for that fixed TOTAL
       const best = chooseDecompForTotal(g.nx, g.ny, totalMPI, minPatch);
       const px = best ? best.px : 1;
       const py = best ? best.py : totalMPI; // fallback
@@ -307,11 +307,11 @@ function compute() {
         } else {
           const r = ratios[i];
           if (r) {
-            // redondeo: mostramos aproximado; en WRF dependerá de ratios/config
+            // rounding: show approximate; in WRF actual dt depends on ratios/config
             const dtChild = Math.max(1, Math.round(dtParentVal / r));
             dtDomStr = `${dtChild}s (/${r})`;
           } else {
-            dtDomStr = `${dtParentVal}s (sin ratio)`;
+            dtDomStr = `${dtParentVal}s (no ratio)`;
           }
         }
       }
@@ -328,12 +328,12 @@ function compute() {
       };
     });
 
-    // Añadimos un encabezado adicional con TOTAL recomendado (para hacerlo explícito)
+    // Add an extra header with the recommended TOTAL (explicit)
     out.push(`
       <div class="sectionTitle" style="margin-top:16px">
         <span class="badge">${scen.name}</span>
         <div style="color:var(--muted)">
-          MPI total recomendado (d01): <b>${totalMPI}</b> · descomp d01: <b>${rec.px}×${rec.py}</b> · tile d01: <b>${rec.tx}×${rec.ty}</b>
+          Recommended total MPI (d01): <b>${totalMPI}</b> · decomposition d01: <b>${rec.px}×${rec.py}</b> · tile d01: <b>${rec.tx}×${rec.ty}</b>
           ${dtParentVal ? ` · time_step(d01): <b>${dtParentVal}s</b>` : ""}
         </div>
       </div>
@@ -344,12 +344,12 @@ function compute() {
 
   out.push(`
     <div class="card" style="margin-top:14px">
-      <div class="badge">Notas</div>
+      <div class="badge">Notes</div>
       <ul style="color:var(--muted); margin:10px 0 0; padding-left:18px">
-        <li><b>time_step</b> aquí se calcula para pasar el chequeo de razonabilidad: <code>dt/dx (s/km) ≤ reasonable_time_step_ratio</code> con un factor de seguridad por escenario.</li>
-        <li><b>MPI total</b> se recomienda para <b>d01</b> y se intenta mantener el mismo total en todos los dominios (como un lanzamiento típico de WRF).</li>
-        <li>El check de patch usa <code>nx=e_we−1</code>, <code>ny=e_sn−1</code>. Debe cumplirse <code>min(tile_x, tile_y) ≥ min_patch</code>.</li>
-        <li>Si usas un total alto (p.ej. 24), <b>fija</b> <code>nproc_x/nproc_y</code> para evitar factorizaciones malas (tipo 2×11) que rompen el patch.</li>
+        <li><b>time_step</b> here is calculated to pass the reasonableness check: <code>dt/dx (s/km) ≤ reasonable_time_step_ratio</code> with a safety factor per scenario.</li>
+        <li><b>Total MPI</b> is recommended for <b>d01</b> and we try to keep the same total across domains (typical WRF launch).</li>
+        <li>The patch check uses <code>nx=e_we−1</code>, <code>ny=e_sn−1</code>. You must satisfy <code>min(tile_x, tile_y) ≥ min_patch</code>.</li>
+        <li>If you use a high total (e.g. 24), <b>fix</b> <code>nproc_x/nproc_y</code> to avoid bad factorizations (like 2×11) that break the patch.</li>
       </ul>
     </div>
   `);
@@ -389,7 +389,7 @@ document.getElementById("exampleBtn").addEventListener("click", () => {
   }
 });
 
-// run inicial
+// initial run
 setExample();
 try {
   document.getElementById("output").innerHTML = compute();
