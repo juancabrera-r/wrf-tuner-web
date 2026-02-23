@@ -1,20 +1,20 @@
 // app.js
-// WRF Tuner — versión “WRF-safe” (unit-safe + dt cap por reasonable_time_step_ratio + ranks robustos)
+// WRF Tuner — "WRF-safe" version (unit-safe + dt cap via reasonable_time_step_ratio + robust rank choices)
 //
-// Cambios clave vs versión anterior:
-// 1) dx: acepta "5", "5km", "5000", "5000m" y lo normaliza a metros internamente
-// 2) time_step: se calcula por CAP (reasonable_time_step_ratio) en s/km, NO por dt≈k*dx
-// 3) procesadores: recomienda usando una lista de totales preferidos (16,20,24,...) evitando descomposiciones peligrosas
-// 4) usa nx=e_we-1, ny=e_sn-1 para el patch (como ARW)
+// Key changes vs previous version:
+// 1) dx: accepts "5", "5km", "5000", "5000m" and normalizes to meters internally
+// 2) time_step: calculated by CAP (reasonable_time_step_ratio) in s/km, NOT by dt≈k*dx
+// 3) processors: recommends using a list of preferred totals (16,20,24,...) avoiding unsafe factorizations
+// 4) uses nx=e_we-1, ny=e_sn-1 for the patch (ARW style)
 //
-// Nota: WRF normalmente usa un único -np total para todo el job. Aquí recomendamos un total único
-// (basado en d01), y mostramos la descomposición/tile que resultaría para cada dominio.
+// Note: WRF typically uses a single total -np for the whole job. Here we recommend a single total
+// (based on d01), and show the decomposition/tiles that would result for each domain.
 
 const SCENARIOS = [
-  // safetyFactor multiplica el dt_max (cap) -> dt recomendado
-  { name: "ÓPTIMA", safetyFactor: 0.80, preferredTotals: [16, 20, 24, 12, 8, 4, 2, 1] },
-  { name: "SEGURA", safetyFactor: 0.70, preferredTotals: [12, 16, 20, 8, 4, 2, 1] },
-  { name: "ARRIESGADA", safetyFactor: 0.95, preferredTotals: [16, 20, 24, 32, 36, 12, 8, 4, 2, 1] },
+  // safetyFactor multiplies dt_max (cap) -> recommended dt
+  { name: "OPTIMAL", safetyFactor: 0.80, preferredTotals: [16, 20, 24, 12, 8, 4, 2, 1] },
+  { name: "SAFE", safetyFactor: 0.70, preferredTotals: [12, 16, 20, 8, 4, 2, 1] },
+  { name: "RISKY", safetyFactor: 0.95, preferredTotals: [16, 20, 24, 32, 36, 12, 8, 4, 2, 1] },
 ];
 
 // -----------------------------
@@ -22,7 +22,7 @@ const SCENARIOS = [
 // -----------------------------
 function parseIntStrict(x, name) {
   const v = Number.parseInt(String(x).trim(), 10);
-  if (!Number.isFinite(v)) throw new Error(`${name} inválido.`);
+  if (!Number.isFinite(v)) throw new Error(`${name} invalid.`);
   return v;
 }
 
@@ -33,27 +33,27 @@ function parseListStrict(str, n, name) {
     .filter(Boolean);
 
   if (raw.length !== n) {
-    throw new Error(`${name} debe tener ${n} valores separados por coma (recibido ${raw.length}).`);
+    throw new Error(`${name} must have ${n} comma-separated values (got ${raw.length}).`);
   }
   const out = raw.map((x) => parseIntStrict(x, name));
   return out;
 }
 
 function parseDxTokenToMeters(token) {
-  // Acepta:
-  // - "5" (heurística: <=1000 => km, >1000 => m)
+  // Accepts:
+  // - "5" (heuristic: <=1000 => km, >1000 => m)
   // - "5km", "5000m"
   // - "0.5km"
   const s = String(token || "").trim().toLowerCase();
   if (!s) return NaN;
 
   const m = s.match(/^([0-9]*\.?[0-9]+)\s*(km|m)?$/);
-  if (!m) throw new Error(`dx inválido: "${token}" (usa 5, 5km, 5000m, 5000)`);
+  if (!m) throw new Error(`dx invalid: "${token}" (use 5, 5km, 5000m, 5000)`);
 
   const val = Number(m[1]);
   const unit = m[2] || null;
 
-  if (!Number.isFinite(val) || val <= 0) throw new Error(`dx inválido: "${token}"`);
+  if (!Number.isFinite(val) || val <= 0) throw new Error(`dx invalid: "${token}"`);
 
   if (unit === "km") return val * 1000.0;
   if (unit === "m") return val;
@@ -77,7 +77,7 @@ function parseDxListToMeters(str, n, name = "dx") {
   }
 
   if (raw.length !== n) {
-    throw new Error(`${name} debe tener ${n} valores (o 1 valor). Recibido ${raw.length}.`);
+    throw new Error(`${name} must have ${n} values (or 1 value). Received ${raw.length}.`);
   }
 
   return raw.map(parseDxTokenToMeters);
